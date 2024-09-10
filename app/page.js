@@ -131,172 +131,172 @@ export default function Home() {
 
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-    <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
-      <h1 className="text-2xl font-semibold text-center mb-6">Cardiovascular Disease Prediction</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <input
-            name="age"
-            type="number"
-            placeholder="Age"
-            value={formData.age}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <select
-            name="sex"
-            value={formData.sex}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Select Sex</option>
-            <option value="1">Male</option>
-            <option value="0">Female</option>
-          </select>
-        </div>
-        <div>
-          <select
-            name="chestPainType"
-            value={formData.chestPainType}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Select Chest Pain Type</option>
-            <option value="0">ATA</option>
-            <option value="1">NAP</option>
-            <option value="2">ASY</option>
-            <option value="3">TA</option>
-          </select>
-        </div>
-        <div>
-          <input
-            name="restingBP"
-            type="number"
-            placeholder="Resting BP"
-            value={formData.restingBP}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <input
-            name="cholesterol"
-            type="number"
-            placeholder="Cholesterol"
-            value={formData.cholesterol}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <input
-            name="fastingBS"
-            type="number"
-            placeholder="Fasting Blood Sugar"
-            value={formData.fastingBS}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <select
-            name="restingECG"
-            value={formData.restingECG}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Select Resting ECG</option>
-            <option value="0">Normal</option>
-            <option value="1">ST</option>
-            <option value="2">LVH</option>
-          </select>
-        </div>
-        <div>
-          <input
-            name="maxHR"
-            type="number"
-            placeholder="Max HR"
-            value={formData.maxHR}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <select
-            name="exerciseAngina"
-            value={formData.exerciseAngina}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Exercise Induced Angina</option>
-            <option value="1">Yes</option>
-            <option value="0">No</option>
-          </select>
-        </div>
-        <div>
-          <input
-            name="oldpeak"
-            type="number"
-            placeholder="Oldpeak"
-            value={formData.oldpeak}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-        <div>
-          <select
-            name="stSlope"
-            value={formData.stSlope}
-            onChange={handleChange}
-            required
-            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="">Select ST Slope</option>
-            <option value="0">Up</option>
-            <option value="1">Flat</option>
-            <option value="2">Down</option>
-          </select>
-        </div>
-        <div>
-          <button
-            type="submit"
-            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200"
-          >
-            Predict
-          </button>
-        </div>
-      </form>
-      {prediction && (
-        <div className="mt-6 text-center">
-          <p className="text-lg font-semibold">Prediction: {prediction}</p>
-        </div>
-      )}
-        {trainingAccuracy && (
-            <div className="mt-6 text-center">
-              <button
-                className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-200"
-                onClick={() => alert(`Training Accuracy: ${trainingAccuracy[trainingAccuracy.length - 1].toFixed(2)}%`)}
-              >
-                Show Training Accuracy
-              </button>
-            </div>
-          )}
-  
-    </div>
+    <div className="min-h-screen bg-gray-200 flex items-center justify-center">
+  <div className="bg-white p-10 rounded-lg shadow-lg max-w-md w-full border border-gray-300">
+    <h1 className="text-3xl font-bold text-center mb-8 text-gray-800">Cardiovascular Disease Prediction</h1>
+    <form onSubmit={handleSubmit} className="space-y-6">
+      <div>
+        <input
+          name="age"
+          type="number"
+          placeholder="Age"
+          value={formData.age}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div>
+        <select
+          name="sex"
+          value={formData.sex}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Select Sex</option>
+          <option value="1">Male</option>
+          <option value="0">Female</option>
+        </select>
+      </div>
+      <div>
+        <select
+          name="chestPainType"
+          value={formData.chestPainType}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Select Chest Pain Type</option>
+          <option value="0">ATA</option>
+          <option value="1">NAP</option>
+          <option value="2">ASY</option>
+          <option value="3">TA</option>
+        </select>
+      </div>
+      <div>
+        <input
+          name="restingBP"
+          type="number"
+          placeholder="Resting BP"
+          value={formData.restingBP}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div>
+        <input
+          name="cholesterol"
+          type="number"
+          placeholder="Cholesterol"
+          value={formData.cholesterol}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div>
+        <input
+          name="fastingBS"
+          type="number"
+          placeholder="Fasting Blood Sugar"
+          value={formData.fastingBS}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div>
+        <select
+          name="restingECG"
+          value={formData.restingECG}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Select Resting ECG</option>
+          <option value="0">Normal</option>
+          <option value="1">ST</option>
+          <option value="2">LVH</option>
+        </select>
+      </div>
+      <div>
+        <input
+          name="maxHR"
+          type="number"
+          placeholder="Max HR"
+          value={formData.maxHR}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div>
+        <select
+          name="exerciseAngina"
+          value={formData.exerciseAngina}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Exercise Induced Angina</option>
+          <option value="1">Yes</option>
+          <option value="0">No</option>
+        </select>
+      </div>
+      <div>
+        <input
+          name="oldpeak"
+          type="number"
+          placeholder="Oldpeak"
+          value={formData.oldpeak}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        />
+      </div>
+      <div>
+        <select
+          name="stSlope"
+          value={formData.stSlope}
+          onChange={handleChange}
+          required
+          className="w-full p-4 border border-gray-300 rounded-lg text-lg placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500"
+        >
+          <option value="">Select ST Slope</option>
+          <option value="0">Up</option>
+          <option value="1">Flat</option>
+          <option value="2">Down</option>
+        </select>
+      </div>
+      <div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition duration-200 text-lg"
+        >
+          Predict
+        </button>
+      </div>
+    </form>
+    {prediction && (
+      <div className="mt-8 text-center">
+        <p className="text-xl font-semibold text-gray-800">Prediction: {prediction}</p>
+      </div>
+    )}
+    {trainingAccuracy && (
+      <div className="mt-8 text-center">
+        <button
+          className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition duration-200 text-lg"
+          onClick={() => alert(`Training Accuracy: ${trainingAccuracy[trainingAccuracy.length - 1].toFixed(2)}%`)}
+        >
+          Show Training Accuracy
+        </button>
+      </div>
+    )}
   </div>
+</div>
+
   
 
   );
