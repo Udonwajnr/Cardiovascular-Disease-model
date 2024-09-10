@@ -1,101 +1,303 @@
-import Image from "next/image";
+"use client"
+import { useEffect, useState } from 'react';
+import * as tf from '@tensorflow/tfjs';
+import Papa from 'papaparse';
 
 export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-8 row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="https://nextjs.org/icons/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li>Save and see your changes instantly.</li>
-        </ol>
+  const [model, setModel] = useState(null);
+  const [formData, setFormData] = useState({
+    age: '',
+    sex: '',
+    chestPainType: '',
+    restingBP: '',
+    cholesterol: '',
+    fastingBS: '',
+    restingECG: '',
+    maxHR: '',
+    exerciseAngina: '',
+    oldpeak: '',
+    stSlope: ''
+  });
+  const [prediction, setPrediction] = useState(null);
+  const [trainingAccuracy, setTrainingAccuracy] = useState([]);
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="https://nextjs.org/icons/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:min-w-44"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  // Load and preprocess the data
+  useEffect(() => {
+    const loadData = async () => {
+      const response = await fetch('/heart.csv');
+      const reader = response.body.getReader();
+      const result = await reader.read(); 
+      const decoder = new TextDecoder('utf-8');
+      const csv = decoder.decode(result.value); 
+      const data = Papa.parse(csv, { header: true }).data; 
+      const processedData = preprocessData(data);
+      trainModel(processedData);
+    };
+
+    loadData();
+  }, []);
+
+  const preprocessData = (data) => {
+    const sexMapping = { 'M': 1, 'F': 0 };
+    const chestPainMapping = { 'ATA': 0, 'NAP': 1, 'ASY': 2, 'TA': 3 };
+    const restingECGMapping = { 'Normal': 0, 'ST': 1, 'LVH': 2 };
+    const exerciseAnginaMapping = { 'Y': 1, 'N': 0 };
+    const stSlopeMapping = { 'Up': 0, 'Flat': 1, 'Down': 2 };
+
+    const features = data.map(item => [
+      parseFloat(item.Age),
+      sexMapping[item.Sex],
+      chestPainMapping[item.ChestPainType],
+      parseFloat(item.RestingBP),
+      parseFloat(item.Cholesterol),
+      parseFloat(item.FastingBS),
+      restingECGMapping[item.RestingECG],
+      parseFloat(item.MaxHR),
+      exerciseAnginaMapping[item.ExerciseAngina],
+      parseFloat(item.Oldpeak),
+      stSlopeMapping[item.ST_Slope]
+    ]);
+
+    const labels = data.map(item => parseFloat(item.HeartDisease));
+
+    return { features, labels };
+  };
+
+  const createModel = () => {
+    const model = tf.sequential();
+    model.add(tf.layers.dense({ units: 64, activation: 'relu', inputShape: [11] }));
+    model.add(tf.layers.dense({ units: 32, activation: 'relu' }));
+    model.add(tf.layers.dense({ units: 1, activation: 'sigmoid' }));
+
+    model.compile({
+      optimizer: tf.train.adam(),
+      loss: 'binaryCrossentropy',
+      metrics: ['accuracy']
+    });
+
+    return model;
+  };
+
+  const trainModel = async (data) => {
+    const { features, labels } = data;
+    const xs = tf.tensor2d(features);
+    const ys = tf.tensor2d(labels, [labels.length, 1]);
+
+    const model = createModel();
+    const history = await model.fit(xs, ys, {
+      epochs: 50,
+      batchSize: 32,
+      validationSplit: 0.2,
+      callbacks: tf.callbacks.earlyStopping({ monitor: 'val_loss', patience: 10 })
+    });
+
+    setModel(model);
+    // Convert accuracy to percentage
+    const accuracyInPercent = history.history.acc.map(acc => acc * 100);
+    setTrainingAccuracy(accuracyInPercent);
+  };
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!model) {
+      alert('Model is still training, please wait.');
+      return;
+    }
+
+    const input = [
+      parseFloat(formData.age),
+      parseFloat(formData.sex),
+      parseFloat(formData.chestPainType),
+      parseFloat(formData.restingBP),
+      parseFloat(formData.cholesterol),
+      parseFloat(formData.fastingBS),
+      parseFloat(formData.restingECG),
+      parseFloat(formData.maxHR),
+      parseFloat(formData.exerciseAngina),
+      parseFloat(formData.oldpeak),
+      parseFloat(formData.stSlope)
+    ];
+
+    const inputTensor = tf.tensor2d([input]);
+    const prediction = model.predict(inputTensor);
+    const predictionResult = prediction.dataSync()[0];
+    setPrediction(predictionResult > 0.5 ? 'Positive for Cardiovascular Disease' : 'Negative for Cardiovascular Disease');
+  };
+
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div className="bg-white p-8 rounded-lg shadow-lg max-w-md w-full">
+      <h1 className="text-2xl font-semibold text-center mb-6">Cardiovascular Disease Prediction</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <input
+            name="age"
+            type="number"
+            placeholder="Age"
+            value={formData.age}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-6 flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
+        <div>
+          <select
+            name="sex"
+            value={formData.sex}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select Sex</option>
+            <option value="1">Male</option>
+            <option value="0">Female</option>
+          </select>
+        </div>
+        <div>
+          <select
+            name="chestPainType"
+            value={formData.chestPainType}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select Chest Pain Type</option>
+            <option value="0">ATA</option>
+            <option value="1">NAP</option>
+            <option value="2">ASY</option>
+            <option value="3">TA</option>
+          </select>
+        </div>
+        <div>
+          <input
+            name="restingBP"
+            type="number"
+            placeholder="Resting BP"
+            value={formData.restingBP}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
+        </div>
+        <div>
+          <input
+            name="cholesterol"
+            type="number"
+            placeholder="Cholesterol"
+            value={formData.cholesterol}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="https://nextjs.org/icons/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
+        </div>
+        <div>
+          <input
+            name="fastingBS"
+            type="number"
+            placeholder="Fasting Blood Sugar"
+            value={formData.fastingBS}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        </div>
+        <div>
+          <select
+            name="restingECG"
+            value={formData.restingECG}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select Resting ECG</option>
+            <option value="0">Normal</option>
+            <option value="1">ST</option>
+            <option value="2">LVH</option>
+          </select>
+        </div>
+        <div>
+          <input
+            name="maxHR"
+            type="number"
+            placeholder="Max HR"
+            value={formData.maxHR}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <select
+            name="exerciseAngina"
+            value={formData.exerciseAngina}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Exercise Induced Angina</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+        <div>
+          <input
+            name="oldpeak"
+            type="number"
+            placeholder="Oldpeak"
+            value={formData.oldpeak}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <div>
+          <select
+            name="stSlope"
+            value={formData.stSlope}
+            onChange={handleChange}
+            required
+            className="w-full p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          >
+            <option value="">Select ST Slope</option>
+            <option value="0">Up</option>
+            <option value="1">Flat</option>
+            <option value="2">Down</option>
+          </select>
+        </div>
+        <div>
+          <button
+            type="submit"
+            className="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition duration-200"
+          >
+            Predict
+          </button>
+        </div>
+      </form>
+      {prediction && (
+        <div className="mt-6 text-center">
+          <p className="text-lg font-semibold">Prediction: {prediction}</p>
+        </div>
+      )}
+        {trainingAccuracy && (
+            <div className="mt-6 text-center">
+              <button
+                className="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition duration-200"
+                onClick={() => alert(`Training Accuracy: ${trainingAccuracy[trainingAccuracy.length - 1].toFixed(2)}%`)}
+              >
+                Show Training Accuracy
+              </button>
+            </div>
+          )}
+  
     </div>
+  </div>
+  
+
   );
 }
